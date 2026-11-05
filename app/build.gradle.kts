@@ -134,9 +134,8 @@ android {
     splits {
         abi {
             isEnable = true
-            isUniversalApk = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = false
+            reset()include("arm64-v8a")
         }
     }
 
