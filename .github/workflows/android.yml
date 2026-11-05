@@ -55,7 +55,7 @@ jobs:
 
           mkdir -p ../android/libbox-inputs
 
-          for arch in 386 amd64 arm arm64; do
+          for arch in arm64; do
             go run ./cmd/internal/build_libbox \
               -target android \
               -platform android/$arch
@@ -85,7 +85,7 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon \
             :app:assembleOtherDebug \
-            :app:assembleOtherLegacyDebug
+            :
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -93,5 +93,5 @@ jobs:
           name: FreeNet-Hub-APK
           path: |
             android/app/build/outputs/apk/other/debug/*.apk
-            android/app/build/outputs/apk/otherLegacy/debug/*.apk
+            
           if-no-files-found: error
