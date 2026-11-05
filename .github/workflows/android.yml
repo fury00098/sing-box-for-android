@@ -1,0 +1,97 @@
+
+name: Build FreeNet Hub APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Android app
+        uses: actions/checkout@v4
+        with:
+          path: android
+
+      - name: Checkout sing-box engine
+        uses: actions/checkout@v4
+        with:
+          repository: SagerNet/sing-box
+          ref: v1.15.0-alpha.13
+          path: engine
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.10'
+
+      - name: Setup Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28
+
+      - name: Build native libraries
+        working-directory: engine
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          set -e
+          make lib_install
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+          mkdir -p ../android/libbox-inputs
+
+          for arch in 386 amd64 arm arm64; do
+            go run ./cmd/internal/build_libbox \
+              -target android \
+              -platform android/$arch
+
+            mkdir -p ../android/libbox-inputs/$arch
+
+            mv libbox.aar ../android/libbox-inputs/$arch/
+            mv libbox-legacy.aar ../android/libbox-inputs/$arch/
+          done
+
+          mkdir -p ../android/app/libs
+
+          go run ./cmd/internal/merge_aar \
+            -output ../android/app/libs/libbox.aar \
+            ../android/libbox-inputs/*/libbox.aar
+
+          go run ./cmd/internal/merge_aar \
+            -output ../android/app/libs/libbox-legacy.aar \
+            ../android/libbox-inputs/*/libbox-legacy.aar
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon \
+            :app:assembleOtherDebug \
+            :app:assembleOtherLegacyDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreeNet-Hub-APK
+          path: |
+            android/app/build/outputs/apk/other/debug/*.apk
+            android/app/build/outputs/apk/otherLegacy/debug/*.apk
+          if-no-files-found: error
