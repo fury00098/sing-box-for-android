@@ -1,5 +1,5 @@
 package io.nekohasekai.sfa.bg
-
+import io.nekohasekai.sfa.utils.VlessSubscriptionParser
 import android.content.Context
 import android.util.Log
 import androidx.work.BackoffPolicy
@@ -77,9 +77,12 @@ class UpdateProfileWork {
                 try {
                     val content = HTTPClient().use { it.getString(profile.typed.remoteURL) }
                     Libbox.checkConfig(content)
-                    val file = File(profile.typed.path)
-                    if (file.readText() != content) {
-                        File(profile.typed.path).writeText(content)
+                    val content = HTTPClient().use { it.getString(profile.typed.remoteURL) }
+val configContent = VlessSubscriptionParser.normalize(content)
+Libbox.checkConfig(configContent)
+val file = File(profile.typed.path)
+if (file.readText() != configContent) {
+    file.writeText(configContent)
                         if (profile.id == selectedProfile) {
                             selectedProfileUpdated = true
                         }
