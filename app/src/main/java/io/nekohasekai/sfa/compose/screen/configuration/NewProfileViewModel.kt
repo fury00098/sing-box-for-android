@@ -301,9 +301,8 @@ class NewProfileViewModel(application: Application) : AndroidViewModel(applicati
 
         // Fetch initial config - this MUST succeed for remote profiles
         val content = HTTPClient().use { it.getString(state.remoteUrl) }
-        Libbox.checkConfig(content)
-        val configContent = content
-
+val configContent = io.nekohasekai.sfa.utils.VlessSubscriptionParser.normalize(content)
+Libbox.checkConfig(configContent)
         configFile.writeText(configContent)
 
         // Create profile in database and select it
