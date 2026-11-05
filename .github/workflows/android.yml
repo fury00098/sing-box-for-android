@@ -84,8 +84,8 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon \
-            :app:assembleOtherDebug \
-            :
+            :app:assembleOtherDebug 
+            
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
