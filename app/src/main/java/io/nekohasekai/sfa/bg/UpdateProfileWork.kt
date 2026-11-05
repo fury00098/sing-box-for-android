@@ -75,20 +75,20 @@ class UpdateProfileWork {
                     continue
                 }
                 try {
-                    val content = HTTPClient().use { it.getString(profile.typed.remoteURL) }
-                    Libbox.checkConfig(content)
-                    val content = HTTPClient().use { it.getString(profile.typed.remoteURL) }
-val configContent = VlessSubscriptionParser.normalize(content)
-Libbox.checkConfig(configContent)
-val file = File(profile.typed.path)
-if (file.readText() != configContent) {
-    file.writeText(configContent)
-                        if (profile.id == selectedProfile) {
-                            selectedProfileUpdated = true
-                        }
-                    }
-                    profile.typed.lastUpdated = Date()
-                    ProfileManager.update(profile)
+    val content = HTTPClient().use { it.getString(profile.typed.remoteURL) }
+    val configContent = VlessSubscriptionParser.normalize(content)
+    Libbox.checkConfig(configContent)
+
+    val file = File(profile.typed.path)
+    if (file.readText() != configContent) {
+        file.writeText(configContent)
+        if (profile.id == selectedProfile) {
+            selectedProfileUpdated = true
+        }
+    }
+
+    profile.typed.lastUpdated = Date()
+    ProfileManager.update(profile)
                 } catch (e: Exception) {
                     Log.e(TAG, "update profile ${profile.name}", e)
                     success = false
