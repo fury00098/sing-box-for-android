@@ -1,5 +1,6 @@
 package io.nekohasekai.sfa.compose.screen.configuration
-
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -509,7 +510,25 @@ fun NewProfileScreen(
                                 }
                             },
                         )
+OutlinedButton(
+    onClick = {
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val copiedText =
+            clipboard.primaryClip
+                ?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)
+                ?.coerceToText(context)
+                ?.toString()
 
+        if (!copiedText.isNullOrBlank()) {
+            viewModel.updateRemoteUrl(copiedText.trim())
+        }
+    },
+    modifier = Modifier.fillMaxWidth(),
+) {
+    Text("چسباندن از کلیپ‌بورد")
+}
                         HorizontalDivider()
 
                         Row(
